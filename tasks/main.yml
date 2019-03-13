@@ -1,2 +1,47 @@
 ---
 # tasks file for roles/jerveclark.jenkins-docker
+- name: Ensure pip is installed
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Ensure docker module is installed
+  pip:
+    name: docker
+    state: present
+
+- name: Pull latest jenkins/jenkins:lts-alpine
+  docker_image:
+    name: jenkins/jenkins
+    tag: lts-alpine
+    state: present
+
+- name: Create jenkins_home directory
+  file:
+    path: /home/vagrant/jenkins_home
+    owner: vagrant
+    group: vagrant
+    state: directory
+
+- name: Run jenkins container
+  docker_container:
+    name: jenkins
+    image: jenkins/jenkins:lts-alpine
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - /home/vagrant/jenkins_home:/var/jenkins_home
+    state: started
+    ignore_image: true
+    detach: true
+
+- name: Wait for jenkins server
+  pause:
+    seconds: 15
+
+- name: Copy jenkins secret file
+  synchronize:
+    src: /home/vagrant/jenkins_home/secrets/initialAdminPassword
+    dest: ../artifacts/
+    mode: pull
