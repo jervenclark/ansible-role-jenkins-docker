@@ -2,7 +2,9 @@
 # tasks file for roles/jerveclark.jenkins-docker
 - name: Ensure pip is installed
   apt:
-    name: python3-pip
+    name:
+      - python3-pip
+      - unzip
     state: present
 
 - name: Ensure docker module is installed
@@ -36,12 +38,10 @@
     ignore_image: true
     detach: true
 
-- name: Wait for jenkins server
-  pause:
-    seconds: 15
-
-- name: Copy jenkins secret file
-  synchronize:
-    src: /home/vagrant/jenkins_home/secrets/initialAdminPassword
-    dest: ../artifacts/
-    mode: pull
+- name: Copy jenkins setup
+  unarchive:
+    src: ../artifacts/jenkins_home.zip
+    dest: /home/vagrant/
+    keep_newer: true
+    owner: vagrant
+    group: vagrant
