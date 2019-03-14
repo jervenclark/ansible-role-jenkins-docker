@@ -1,6 +1,6 @@
 ---
 # tasks file for roles/jerveclark.jenkins-docker
-- name: Ensure pip is installed
+- name: Ensure dependencies are installed
   apt:
     name:
       - python3-pip
@@ -12,10 +12,10 @@
     name: docker
     state: present
 
-- name: Pull latest jenkins/jenkins:lts-alpine
+- name: Pull latest jenkins image
   docker_image:
-    name: jenkins/jenkins
-    tag: lts-alpine
+    name: jenkinsci/blueocean
+    tag: latest
     state: present
 
 - name: Create jenkins_home directory
@@ -28,15 +28,16 @@
 - name: Run jenkins container
   docker_container:
     name: jenkins
-    image: jenkins/jenkins:lts-alpine
+    image: jenkinsci/blueocean:latest
     ports:
-      - 8080:8080
+      - 1317:8080
       - 50000:50000
     volumes:
       - /home/vagrant/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
     state: started
-    ignore_image: true
-    detach: true
+    privileged: true
+  register: jenkins_container
 
 - name: Copy jenkins setup
   unarchive:
@@ -45,3 +46,10 @@
     keep_newer: true
     owner: vagrant
     group: vagrant
+  when: jenkins_container.changed
+
+# TO-DO: remove this task because of security reasons
+- name: Change docker.sock permission
+  file:
+    path: /var/run/docker.sock
+    mode: 0777
