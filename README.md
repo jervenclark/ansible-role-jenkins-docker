@@ -20,7 +20,7 @@ Example Playbook
 ```
 - hosts: jenkins
   roles:
-    - role: jervenclark.jenkins-docker
+    - role: jervenclark.jenkins_docker
 ```
 
 License
